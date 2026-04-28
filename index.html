@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Registro de perfil audiovisual</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background: #f5f5f5; min-height: 100vh; display: flex; justify-content: center; padding: 2rem 1rem; }
+    .card { background: #fff; border-radius: 12px; padding: 2rem; max-width: 580px; width: 100%; height: fit-content; box-shadow: 0 1px 4px rgba(0,0,0,0.08); }
+    h2 { font-size: 18px; font-weight: 600; margin-bottom: 4px; color: #111; }
+    .subtitle { font-size: 13px; color: #666; margin-bottom: 1.5rem; }
+    .section-title { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: #999; border-top: 1px solid #eee; padding-top: 1rem; margin: 1.5rem 0 1rem; }
+    .section-hint { font-size: 12px; color: #aaa; margin: -0.5rem 0 1rem; }
+    label { display: block; font-size: 13px; color: #555; margin-bottom: 4px; }
+    .req { color: #e53e3e; margin-left: 2px; }
+    input, select { width: 100%; padding: 8px 10px; border: 1px solid #ddd; border-radius: 7px; font-size: 14px; color: #111; background: #fff; outline: none; transition: border 0.15s; }
+    input:focus, select:focus { border-color: #888; }
+    .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 1rem; }
+    .grid3 { display: grid; grid-template-columns: 1fr 1fr auto; gap: 8px; align-items: end; margin-bottom: 0.75rem; }
+    .field { margin-bottom: 1rem; }
+    .chips { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 1rem; }
+    .chip { display: inline-flex; align-items: center; gap: 5px; font-size: 12px; padding: 4px 10px; border-radius: 999px; background: #ebf4ff; color: #2b6cb0; border: 1px solid #bee3f8; }
+    .chip .remove { cursor: pointer; font-size: 15px; font-weight: 500; opacity: 0.6; line-height: 1; }
+    .chip .remove:hover { opacity: 1; }
+    .empty-hint { font-size: 12px; color: #bbb; margin-bottom: 1rem; }
+    .idiomas-wrap { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 0.5rem; }
+    .idioma-btn { font-size: 12px; padding: 4px 10px; border-radius: 999px; background: #f0f0f0; color: #666; border: 1px solid #ddd; cursor: pointer; transition: all 0.15s; }
+    .idioma-btn.active { background: #ebf4ff; color: #2b6cb0; border-color: #bee3f8; }
+    .idiomas-selected { font-size: 12px; color: #555; margin: 4px 0 0; }
+    .btn-add { white-space: nowrap; padding: 8px 14px; background: #f0f0f0; border: 1px solid #ddd; border-radius: 7px; font-size: 13px; cursor: pointer; color: #333; transition: background 0.15s; }
+    .btn-add:hover:not(:disabled) { background: #e0e0e0; }
+    .btn-add:disabled { opacity: 0.4; cursor: not-allowed; }
+    .btn-submit { width: 100%; padding: 11px; background: #111; color: #fff; border: none; border-radius: 8px; font-size: 15px; font-weight: 500; cursor: pointer; margin-top: 1.5rem; transition: background 0.15s; }
+    .btn-submit:hover:not(:disabled) { background: #333; }
+    .btn-submit:disabled { opacity: 0.5; cursor: not-allowed; }
+    .error { font-size: 13px; color: #e53e3e; margin: 1rem 0 0.5rem; }
+    .success { text-align: center; padding: 3rem 1rem; }
+    .success-icon { width: 52px; height: 52px; border-radius: 50%; background: #f0fff4; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem; font-size: 24px; color: #38a169; }
+    .success h2 { margin-bottom: 0.5rem; }
+    .success p { color: #666; font-size: 14px; margin-bottom: 1.5rem; }
+    .btn-reset { padding: 9px 20px; background: #f0f0f0; border: 1px solid #ddd; border-radius: 8px; font-size: 14px; cursor: pointer; }
+  </style>
+</head>
+<body>
+<div class="card" id="app"></div>
+
+<script>
+const WEBHOOK_URL = "https://script.google.com/macros/s/AKfycbwZ_E9olJLYyGEOja4kzhlFrLGcQc6qTitBhQUNstzEuPH7UBf41QHMkj4v21hp-40/exec";
+
+const PUESTOS = [
+  { dept: "Dirección", puestos: ["Director/a","Director/a Adjunto/a","Codirector/a","Director/a de Segunda Unidad","Director/a de Documentales","Director/a de Spot Publicitario"] },
+  { dept: "Producción", puestos: ["Productor/a Ejecutivo/a","Productor/a","Productor/a Asociado/a","Productor/a Delegado/a","Productor/a de Campo","Jefe/a de Producción","Coordinador/a de Producción","Asistente de Producción","Runner de Producción","Secretario/a de Rodaje","Productor/a de Publicidad","Productor/a de Línea"] },
+  { dept: "Guión", puestos: ["Guionista","Guionista de Publicidad","Story Editor","Desarrollador/a de Guión","Documentalista / Investigador/a"] },
+  { dept: "Dirección de Arte", puestos: ["Director/a de Arte","Diseñador/a de Producción","Decorador/a de Set","Escenógrafo/a","Atrezista","Utilero/a","Ambientador/a","Maquetista","Diseñador/a Gráfico/a de Set"] },
+  { dept: "Vestuario y Maquillaje", puestos: ["Diseñador/a de Vestuario","Sastre/a","Estilista","Maquillador/a","Caracterizador/a / FX Maquillaje","Peluquero/a"] },
+  { dept: "Fotografía / Cámara", puestos: ["Director/a de Fotografía (DP)","Operador/a de Cámara","Primer Asistente de Cámara (Foquista)","Segundo Asistente de Cámara","Auxiliar de Cámara","Digital Imaging Technician (DIT)","Steadicam Operator","Operador/a de Dron","Video Assist"] },
+  { dept: "Sonido", puestos: ["Jefe/a de Sonido / Sound Mixer","Microfonista / Boom Operator","Ayudante de Sonido","Diseñador/a de Sonido (Post)","Editor/a de Sonido","Mezclador/a de Sonido (Post)"] },
+  { dept: "Eléctrico / Iluminación", puestos: ["Gaffer","Mejor Eléctrico / Best Boy Electric","Eléctrico/a","Generator Operator"] },
+  { dept: "Grip / Maquinaria", puestos: ["Key Grip","Best Boy Grip","Dolly Grip","Maquinista","Grúista"] },
+  { dept: "Producción Virtual / XR", puestos: ["Supervisor/a de Producción Virtual","Operador/a de LED Wall","Técnico/a de Unreal Engine / Tiempo Real","Supervisor/a de VFX en Set","Supervisor/a de AR/XR"] },
+  { dept: "Postproducción", puestos: ["Supervisor/a de Postproducción","Editor/a de Video / Montador/a","Editor/a de Publicidad","Colorista","Etalonador/a","Artista VFX","Compositor/a Digital","Motion Graphics Designer","Artista 3D","Modelador/a 3D","Animador/a","Rigger","Rotoscopista","Online Editor","Conform Editor","Coordinador/a de Post"] },
+  { dept: "Casting", puestos: ["Director/a de Casting","Asistente de Casting"] },
+  { dept: "Localizaciones", puestos: ["Location Manager","Scout de Localizaciones","Asistente de Localizaciones"] },
+  { dept: "Producción Publicidad / Branded", puestos: ["Producer de Agencia","Productor/a de Contenido","Head of Content","Productor/a de Brand Content","Project Manager Audiovisual"] },
+  { dept: "Música", puestos: ["Compositor/a de Bandas Sonoras","Supervisor/a Musical","Editor/a Musical"] },
+  { dept: "Distribución / Entrega", puestos: ["Técnico/a de Subtitulado","Técnico/a de Accesibilidad Audiovisual","Quality Control (QC) Technician","Delivery Manager","Técnico/a de Digitalización y Archivo"] },
+];
+
+const PAISES_CIUDADES = {
+  "Alemania":["Berlín","Múnich","Hamburgo","Colonia","Frankfurt","Otras"],
+  "Argentina":["Buenos Aires","Córdoba","Rosario","Mendoza","Otras"],
+  "Australia":["Sídney","Melbourne","Brisbane","Otras"],
+  "Austria":["Viena","Otras"],
+  "Bélgica":["Bruselas","Amberes","Otras"],
+  "Bolivia":["La Paz","Santa Cruz","Otras"],
+  "Brasil":["São Paulo","Río de Janeiro","Brasilia","Otras"],
+  "Canadá":["Toronto","Montreal","Vancouver","Otras"],
+  "Chile":["Santiago","Valparaíso","Otras"],
+  "China":["Pekín","Shanghái","Otras"],
+  "Colombia":["Bogotá","Medellín","Cali","Cartagena","Otras"],
+  "Corea del Sur":["Seúl","Otras"],
+  "Costa Rica":["San José","Otras"],
+  "Cuba":["La Habana","Otras"],
+  "Dinamarca":["Copenhague","Otras"],
+  "Ecuador":["Quito","Guayaquil","Otras"],
+  "Emiratos Árabes":["Dubái","Abu Dabi","Otras"],
+  "España":["Madrid","Barcelona","Valencia","Sevilla","Bilbao","Málaga","Zaragoza","A Coruña","Otras"],
+  "Estados Unidos":["Los Ángeles","Nueva York","Miami","Chicago","Atlanta","Austin","Nashville","Nueva Orleans","Otras"],
+  "Finlandia":["Helsinki","Otras"],
+  "Francia":["París","Lyon","Marsella","Burdeos","Otras"],
+  "Grecia":["Atenas","Tesalónica","Otras"],
+  "Guatemala":["Ciudad de Guatemala","Otras"],
+  "India":["Bombay","Delhi","Bengaluru","Otras"],
+  "Italia":["Roma","Milán","Florencia","Nápoles","Otras"],
+  "Japón":["Tokio","Osaka","Otras"],
+  "Marruecos":["Casablanca","Marrakech","Otras"],
+  "México":["Ciudad de México","Guadalajara","Monterrey","Puebla","Otras"],
+  "Nueva Zelanda":["Auckland","Wellington","Otras"],
+  "Noruega":["Oslo","Bergen","Otras"],
+  "Países Bajos":["Ámsterdam","Rotterdam","Otras"],
+  "Paraguay":["Asunción","Otras"],
+  "Perú":["Lima","Otras"],
+  "Polonia":["Varsovia","Cracovia","Otras"],
+  "Portugal":["Lisboa","Oporto","Otras"],
+  "Puerto Rico":["San Juan","Otras"],
+  "Reino Unido":["Londres","Manchester","Birmingham","Edimburgo","Otras"],
+  "República Checa":["Praga","Otras"],
+  "República Dominicana":["Santo Domingo","Otras"],
+  "Rumanía":["Bucarest","Otras"],
+  "Sudáfrica":["Johannesburgo","Ciudad del Cabo","Otras"],
+  "Suecia":["Estocolmo","Gotemburgo","Otras"],
+  "Suiza":["Zúrich","Ginebra","Basilea","Otras"],
+  "Uruguay":["Montevideo","Otras"],
+  "Venezuela":["Caracas","Otras"],
+};
+
+const IDIOMAS = ["Español","Inglés","Francés","Alemán","Italiano","Portugués","Catalán","Euskera","Gallego","Árabe","Chino (Mandarín)","Japonés","Coreano","Ruso","Holandés","Sueco","Polaco","Turco","Hindi","Otro"];
+const RRSS = ["Web / Portfolio","Instagram","LinkedIn","Vimeo","YouTube","TikTok","IMDb"];
+const PAISES = Object.keys(PAISES_CIUDADES).sort();
+
+let state = { nombre:"", apellido:"", tel:"", mail:"", ubicaciones:[], roles:[], idiomas:[], rrss:{}, selPais:"", selCiudad:"", selDept:"", selPuesto:"" };
+let submitted = false;
+
+function render() {
+  const app = document.getElementById("app");
+  if (submitted) {
+    app.innerHTML = `
+      <div class="success">
+        <div class="success-icon">✓</div>
+        <h2>¡Perfil enviado!</h2>
+        <p>Gracias ${state.nombre}, tus datos han quedado registrados.</p>
+        <button class="btn-reset" onclick="resetForm()">Añadir otro perfil</button>
+      </div>`;
+    return;
+  }
+
+  const ciudades = state.selPais ? PAISES_CIUDADES[state.selPais] || [] : [];
+  const puestosDisp = state.selDept ? (PUESTOS.find(d => d.dept === state.selDept)?.puestos || []) : [];
+
+  app.innerHTML = `
+    <h2>Registro de perfil audiovisual</h2>
+    <p class="subtitle">Los campos marcados con <span style="color:#e53e3e">*</span> son obligatorios.</p>
+
+    <div class="grid2">
+      <div><label>Nombre <span class="req">*</span></label><input id="nombre" value="${state.nombre}" oninput="s('nombre',this.value)" placeholder="Ana"></div>
+      <div><label>Apellido <span class="req">*</span></label><input id="apellido" value="${state.apellido}" oninput="s('apellido',this.value)" placeholder="García"></div>
+    </div>
+    <div class="grid2">
+      <div><label>Teléfono móvil <span class="req">*</span></label><input id="tel" type="tel" value="${state.tel}" oninput="s('tel',this.value)" placeholder="+34 600 000 000"></div>
+      <div><label>Email <span class="req">*</span></label><input id="mail" type="email" value="${state.mail}" oninput="s('mail',this.value)" placeholder="ana@correo.com"></div>
+    </div>
+
+    <div class="section-title">Ubicación</div>
+    <p class="section-hint">Añade todas las ciudades donde estás disponible.</p>
+    <div class="grid3">
+      <div><label>País <span class="req">*</span></label>
+        <select onchange="s('selPais',this.value);s('selCiudad','');renderSoft()">
+          <option value="">— País —</option>
+          ${PAISES.map(p => `<option value="${p}" ${state.selPais===p?'selected':''}>${p}</option>`).join('')}
+        </select>
+      </div>
+      <div><label>Ciudad <span class="req">*</span></label>
+        <select ${!state.selPais?'disabled':''} onchange="s('selCiudad',this.value)">
+          <option value="">— Ciudad —</option>
+          ${ciudades.map(c => `<option value="${c}" ${state.selCiudad===c?'selected':''}>${c}</option>`).join('')}
+        </select>
+      </div>
+      <button class="btn-add" onclick="addUbicacion()" ${!state.selPais||!state.selCiudad?'disabled':''}>+ Añadir</button>
+    </div>
+    ${state.ubicaciones.length
+      ? `<div class="chips">${state.ubicaciones.map(u=>`<span class="chip">${u}<span class="remove" onclick="removeUbicacion('${u}')">×</span></span>`).join('')}</div>`
+      : `<p class="empty-hint">Ninguna ubicación añadida todavía.</p>`}
+
+    <div class="section-title">Perfil profesional</div>
+    <p class="section-hint">Añade todos los roles y departamentos en los que trabajas.</p>
+    <div class="grid3">
+      <div><label>Departamento</label>
+        <select onchange="s('selDept',this.value);s('selPuesto','');renderSoft()">
+          <option value="">— Departamento —</option>
+          ${PUESTOS.map(d=>`<option value="${d.dept}" ${state.selDept===d.dept?'selected':''}>${d.dept}</option>`).join('')}
+        </select>
+      </div>
+      <div><label>Puesto <span class="req">*</span></label>
+        <select ${!state.selDept?'disabled':''} onchange="s('selPuesto',this.value)">
+          <option value="">— Puesto —</option>
+          ${puestosDisp.map(p=>`<option value="${p}" ${state.selPuesto===p?'selected':''}>${p}</option>`).join('')}
+        </select>
+      </div>
+      <button class="btn-add" onclick="addRol()" ${!state.selDept||!state.selPuesto?'disabled':''}>+ Añadir</button>
+    </div>
+    ${state.roles.length
+      ? `<div class="chips">${state.roles.map(r=>`<span class="chip">${r}<span class="remove" onclick="removeRol('${r}')">×</span></span>`).join('')}</div>`
+      : `<p class="empty-hint">Ningún rol añadido todavía.</p>`}
+
+    <div class="section-title">Idiomas</div>
+    <div class="idiomas-wrap">
+      ${IDIOMAS.map(id=>`<button class="idioma-btn ${state.idiomas.includes(id)?'active':''}" onclick="toggleIdioma('${id}')">${id}</button>`).join('')}
+    </div>
+    ${state.idiomas.length ? `<p class="idiomas-selected">Seleccionados: ${state.idiomas.join(", ")}</p>` : ''}
+
+    <div class="section-title">Web y redes sociales</div>
+    ${RRSS.map(k=>`
+      <div class="field">
+        <label>${k}</label>
+        <input value="${state.rrss[k]||''}" oninput="setRrss('${k}',this.value)" placeholder="${k==='Web / Portfolio'?'https://miweb.com':k==='IMDb'?'https://imdb.com/name/...':'https://'+k.toLowerCase()+'.com/usuario'}">
+      </div>`).join('')}
+
+    <div id="error-msg" class="error" style="display:none"></div>
+    <button class="btn-submit" onclick="handleSubmit()" id="btn-submit">Enviar perfil</button>
+  `;
+}
+
+function renderSoft() { render(); }
+function s(k, v) { state[k] = v; }
+function setRrss(k, v) { state.rrss[k] = v; }
+
+function addUbicacion() {
+  if (!state.selPais || !state.selCiudad) return;
+  const tag = `${state.selCiudad}, ${state.selPais}`;
+  if (!state.ubicaciones.includes(tag)) state.ubicaciones.push(tag);
+  state.selCiudad = "";
+  render();
+}
+
+function removeUbicacion(u) {
+  state.ubicaciones = state.ubicaciones.filter(x => x !== u);
+  render();
+}
+
+function addRol() {
+  if (!state.selDept || !state.selPuesto) return;
+  const tag = `${state.selPuesto} (${state.selDept})`;
+  if (!state.roles.includes(tag)) state.roles.push(tag);
+  state.selPuesto = "";
+  render();
+}
+
+function removeRol(r) {
+  state.roles = state.roles.filter(x => x !== r);
+  render();
+}
+
+function toggleIdioma(id) {
+  state.idiomas = state.idiomas.includes(id) ? state.idiomas.filter(i=>i!==id) : [...state.idiomas, id];
+  render();
+}
+
+function showError(msg) {
+  const el = document.getElementById("error-msg");
+  if (el) { el.textContent = msg; el.style.display = "block"; }
+}
+
+async function handleSubmit() {
+  if (!state.nombre || !state.apellido || !state.tel || !state.mail || !state.roles.length || !state.ubicaciones.length) {
+    showError("Rellena todos los campos obligatorios: nombre, apellido, teléfono, email, al menos un puesto y una ubicación.");
+    return;
+  }
+  const btn = document.getElementById("btn-submit");
+  btn.disabled = true; btn.textContent = "Enviando...";
+
+  const params = new URLSearchParams({
+    nombre: state.nombre, apellido: state.apellido, tel: state.tel, mail: state.mail,
+    roles: state.roles.join(" | "), ubicaciones: state.ubicaciones.join(" | "),
+    idiomas: state.idiomas.join(", "),
+    timestamp: new Date().toISOString()
+  });
+  RRSS.forEach(k => params.append(k, state.rrss[k] || ""));
+
+  try {
+    await fetch(`${WEBHOOK_URL}?${params.toString()}`, { method: "GET", mode: "no-cors" });
+    submitted = true;
+    render();
+  } catch(err) {
+    showError("Error al enviar: " + err.message);
+    btn.disabled = false; btn.textContent = "Enviar perfil";
+  }
+}
+
+function resetForm() {
+  state = { nombre:"", apellido:"", tel:"", mail:"", ubicaciones:[], roles:[], idiomas:[], rrss:{}, selPais:"", selCiudad:"", selDept:"", selPuesto:"" };
+  submitted = false;
+  render();
+}
+
+render();
+</script>
+</body>
+</html>
