@@ -166,7 +166,7 @@ function render() {
           ${ciudades.map(c => `<option value="${c}" ${state.selCiudad===c?'selected':''}>${c}</option>`).join('')}
         </select>
       </div>
-      <button class="btn-add" onclick="addUbicacion()" ${!state.selPais||!state.selCiudad?'disabled':''}>+ Añadir</button>
+      <button id="btn-ubicacion" class="btn-add" onclick="addUbicacion()" ${!state.selPais||!state.selCiudad?'disabled':''}>+ Añadir</button>
     </div>
     ${state.ubicaciones.length
       ? `<div class="chips">${state.ubicaciones.map(u=>`<span class="chip">${u}<span class="remove" onclick="removeUbicacion('${u}')">×</span></span>`).join('')}</div>`
@@ -187,7 +187,7 @@ function render() {
           ${puestosDisp.map(p=>`<option value="${p}" ${state.selPuesto===p?'selected':''}>${p}</option>`).join('')}
         </select>
       </div>
-      <button class="btn-add" onclick="addRol()" ${!state.selDept||!state.selPuesto?'disabled':''}>+ Añadir</button>
+      <button id="btn-rol" class="btn-add" onclick="addRol()" ${!state.selDept||!state.selPuesto?'disabled':''}>+ Añadir</button>
     </div>
     ${state.roles.length
       ? `<div class="chips">${state.roles.map(r=>`<span class="chip">${r}<span class="remove" onclick="removeRol('${r}')">×</span></span>`).join('')}</div>`
@@ -212,8 +212,15 @@ function render() {
 }
 
 function renderSoft() { render(); }
-function s(k, v) { state[k] = v; }
+function s(k, v) { state[k] = v; updateButtons(); }
 function setRrss(k, v) { state.rrss[k] = v; }
+
+function updateButtons() {
+  const btnUbic = document.getElementById("btn-ubicacion");
+  const btnRol = document.getElementById("btn-rol");
+  if (btnUbic) btnUbic.disabled = !state.selPais || !state.selCiudad;
+  if (btnRol) btnRol.disabled = !state.selDept || !state.selPuesto;
+}
 
 function addUbicacion() {
   if (!state.selPais || !state.selCiudad) return;
